@@ -1,0 +1,9 @@
+CC  = gcc 
+AS	= as --32
+LD	= ld
+CFLAGS = -fno-pic -static -fno-builtin -fno-strict-aliasing -O0 -Wall -ggdb -m32 -fno-omit-frame-pointer -fno-stack-protector -fstrength-reduce
+LDFLAGS = -m elf_i386
+OBJCOPY = objcopy
+STRIP = strip
+AR	= ar
+LIB = -I include/ -I include/i386/ -I include/kernel/
