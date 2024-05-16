@@ -17,8 +17,11 @@ kernel:$(OBJS)
 	#@$(STRIP) kernel_img
 	#@$(OBJCOPY) -O binary -R .note -R .comment kernel_img kernel_img
 	
-image:boot kernel
+image:kernelimage boot kernel
 	@dd if=kernel_img seek=5 of=kernel.img conv=notrunc
+	
+kernelimage:
+	@dd if=/dev/zero of=kernel.img count=10000
 	
 bootloader1:
 	@make -C bootloader
@@ -36,11 +39,10 @@ debg:
 	objdump -d ./kernel_img > 1.txt
 	cp ./1.txt /mnt/hgfs/share_dir
 
+qemu:
+	@qemu-system-x86_64 -drive file=kernel.img,index=0,media=disk,format=raw -drive file=fs.img,index=1,media=disk,format=raw -m 64
 
-
-#qemu:
-#	@qemu-system-x86_64 -drive file=kernel.img,index=0,media=disk,format=raw -drive file=fs.img,index=1,media=disk,format=raw -m 32
-#	
+	
 #qemu-debug:
 #	@qemu-system-x86_64 -m 32M -boot a -hda image1 -s -S
 	

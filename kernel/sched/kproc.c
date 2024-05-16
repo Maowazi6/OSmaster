@@ -12,6 +12,8 @@
 #include "idt.h"
 #include "tss.h"
 #include "file.h"
+#include "vfs.h"
+
 
 extern uint32_t ticks; 
 extern void int_exit(void);
@@ -151,6 +153,9 @@ void init_proc_basic(struct proc_struct* proc, char* name, enum proc_prio prio) 
 	proc->cwd_inode_nr = 0;	    // 以根目录做为默认工作路径
 	proc->parent_pid = -1;        // -1表示没有父进程
 	proc->stack_magic = 0x19870916;	  // 自定义的魔数
+	
+	fs_struct_init(&proc->fs);
+	files_struct_init(&proc->files);
 }
 
 struct proc_struct* proc_alloc(char *name, enum proc_prio prio, void *func){
@@ -188,6 +193,8 @@ static void make_kernel_proc(void) {
 	init_proc_basic(&kernel_proc, "kernel_init", 31);
 	ASSERT(!elem_find(&global_proc_list, &kernel_proc.global_list_tag));
 	list_append(&global_proc_list, &kernel_proc.global_list_tag);
+	fs_struct_init(&kernel_proc.fs);
+	files_struct_init(&kernel_proc.files);
 }
 
 /* 实现任务调度 */
@@ -338,16 +345,18 @@ void ticks_to_sleep(uint32_t sleep_ticks) {
 }
 
 /* 创建用户进程 */
-void uproc_alloc(void* filename, char* name) { 
+struct proc_struct* uproc_alloc(void* filename, char* name) { 
 	struct proc_struct *proc = proc_alloc(name, 31, NULL);
 	create_user_vaddr_bitmap(&proc->user_mem);
 	proc->pgdir = create_page_dir();
 	block_desc_init(proc->u_block_desc);
 	proc->ktrap->eip = filename;
+	proc_set_root(proc->fs);
 	proc_start(proc);
+	return proc;
 }
 
-///* 以填充空格的方式输出buf */
+/* 以填充空格的方式输出buf */
 static void pad_print(char* buf, int32_t buf_len, void* ptr, char format) {
 	memset(buf, 0, buf_len);
 	uint8_t out_pad_0idx = 0;

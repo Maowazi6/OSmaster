@@ -5,8 +5,8 @@ CFLAGS+= -MD $(LIB)
 
 
 OBJS =  pipe.o \
-		./linux-like/llinux_fs.o
-
+		./linux-like/llinux_fs.o \
+		./vfs.o
 all:support_fs $(OBJS) 
 	$(LD) $(LDFLAGS) $(OBJS) -o osfs.o
 

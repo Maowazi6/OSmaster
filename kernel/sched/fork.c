@@ -16,6 +16,15 @@ static void proc_fd_copy(struct proc_struct* child_proc, struct proc_struct* par
 	}
 }
 
+static void proc_fs_copy(struct proc_struct* child_proc, struct proc_struct* parent_proc){
+	 fs_struct_init(&child_proc->fs);
+	 files_struct_init(&child_proc->files);
+	 child_proc->fs->pwd = parent_proc->fs->pwd;
+	 child_proc->fs->pwdmnt = parent_proc->fs->pwdmnt;
+	 child_proc->fs->root = parent_proc->fs->root;
+	 child_proc->fs->rootmnt = parent_proc->fs->rootmnt;
+}
+
 /* 将父进程的pcb、虚拟地址位图拷贝给子进程 */
 //目前栈限制在4kb
 static int32_t copy_pcb(struct proc_struct* child_proc, struct proc_struct* parent_proc) {
@@ -36,7 +45,7 @@ static int32_t copy_pcb(struct proc_struct* child_proc, struct proc_struct* pare
 	create_user_vaddr_bitmap(&child_proc->user_mem);
 	uint32_t bitmap_pg_cnt = DIV_ROUND_UP((0xc0000000 - USER_VADDR_START) / PAGE_SIZE / 8 , PAGE_SIZE);
 	memcpy(child_proc->user_mem.vaddr_bitmap.bits, parent_proc->user_mem.vaddr_bitmap.bits, bitmap_pg_cnt * PAGE_SIZE);
-	
+	proc_fs_copy(child_proc, parent_proc);
 	proc_fd_copy(child_proc, parent_proc);
 	
 	return 0;

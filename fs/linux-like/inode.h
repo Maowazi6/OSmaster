@@ -3,9 +3,10 @@
 #include "types.h"
 #include "list.h"
 #include "ide.h"
-
+#include "super_block.h"
+#include "vfs.h"
 /* inode结构 */
-struct inode {
+struct llfs_inode {
    uint32_t i_no;    // inode编号
 
 /* 当此inode是文件时,i_size是指文件大小,
@@ -20,10 +21,15 @@ struct inode {
    struct list_elem inode_tag;
 };
 
-struct inode* inode_open(struct partition* part, uint32_t inode_no);
-void inode_sync(struct partition* part, struct inode* inode, void* io_buf);
-void inode_init(uint32_t inode_no, struct inode* new_inode);
-void inode_close(struct inode* inode);
+struct llfs_inode_info{
+	void *inode_info;//可能是normal file，也可能是dir
+	struct inode mm_inode;
+};
+
+struct llfs_inode* inode_open(struct partition* part, uint32_t inode_no);
+void inode_sync(struct partition* part, struct llfs_inode* inode, void* io_buf);
+void inode_init(uint32_t inode_no, struct llfs_inode* new_inode);
+void inode_close(struct llfs_inode* inode);
 void inode_release(struct partition* part, uint32_t inode_no);
 void inode_delete(struct partition* part, uint32_t inode_no, void* io_buf);
 #endif

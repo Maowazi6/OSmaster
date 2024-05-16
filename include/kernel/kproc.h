@@ -60,7 +60,11 @@ struct proc_struct{
 	uint8_t 				ticks;	    	//进程每次运行多久	
 	uint32_t 				fd_table[MAX_FILES_OPEN_PER_PROC];	// 已打开文件数组
 	uint32_t 				cwd_inode_nr;	 // 进程所在的工作目录的inode编号
+	
+	struct fs_struct 		*fs;
+	struct files_struct		*files;
 };
+
 
 extern struct proc_struct kernel_proc;
 extern struct list ready_proc_list;
@@ -85,7 +89,7 @@ void timer_intr(void);
 void proc_init(void);
 void *get_cur_proc_tag();
 //void proc_activate(struct proc_struct *proc);
-void uproc_alloc(void* filename, char* name);
+struct proc_struct* uproc_alloc(void* filename, char* name);
 void ticks_to_sleep(uint32_t sleep_ticks);
 void sync_release(struct lock *plock);
 void sync_acquire(struct lock *plock);

@@ -5,17 +5,33 @@
 #include "list.h"
 #include "bitmap.h"
 
+/* 构建一个16字节大小的结构体,用来存分区表项 */
+struct partition_table_entry {
+   uint8_t  bootable;		 // 是否可引导	
+   uint8_t  start_head;		 // 起始磁头号
+   uint8_t  start_sec;		 // 起始扇区号
+   uint8_t  start_chs;		 // 起始柱面号
+   uint8_t  fs_type;		 // 分区类型
+   uint8_t  end_head;		 // 结束磁头号
+   uint8_t  end_sec;		 // 结束扇区号
+   uint8_t  end_chs;		 // 结束柱面号
+   uint32_t start_lba;		 // 本分区起始扇区的lba地址
+   uint32_t sec_cnt;		 // 本分区的扇区数目
+} __attribute__ ((packed));	 // 保证此结构是16字节大小
+
+/* 引导扇区,mbr或ebr所在的扇区 */
+struct boot_sector {
+   uint8_t  other[446];		 // 引导代码
+   struct   partition_table_entry partition_table[4];       // 分区表中有4项,共64字节
+   uint16_t signature;		 // 启动扇区的结束标志是0x55,0xaa,
+} __attribute__ ((packed));
+
 /* 分区结构 */
-struct partition {
-   uint32_t start_lba;		 // 起始扇区
-   uint32_t sec_cnt;		 // 扇区数
-   struct disk* my_disk;	 // 分区所属的硬盘
-   struct list_elem part_tag;	 // 用于队列中的标记
-   char name[8];		 // 分区名称
-   struct super_block* sb;	 // 本分区的超级块
-   struct bitmap block_bitmap;	 // 块位图
-   struct bitmap inode_bitmap;	 // i结点位图
-   struct list open_inodes;	 // 本分区打开的i结点队列
+struct partition_info {
+   struct disk* my_disk;	 		// 分区所属的硬盘
+   struct list_elem part_tag;	 	// 用于队列中的标记
+   char name[20];		 			// 分区名称
+   struct partition_table_entry p_entry;
 };
 
 /* 硬盘结构 */
@@ -23,8 +39,6 @@ struct disk {
    char name[8];			   // 本硬盘的名称，如sda等
    struct ide_channel* my_channel;	   // 此块硬盘归属于哪个ide通道
    uint8_t dev_no;			   // 本硬盘是主0还是从1
-   struct partition prim_parts[4];	   // 主分区顶多是4个
-   struct partition logic_parts[8];	   // 逻辑分区数量无限,但总得有个支持的上限,那就支持8个
 };
 
 /* ata通道结构 */
@@ -36,6 +50,12 @@ struct ide_channel {
    bool expecting_intr;		 // 向硬盘发完命令后等待来自硬盘的中断
    struct semaphore disk_done;	 // 硬盘处理完成.线程用这个信号量来阻塞自己，由硬盘完成后产生的中断将线程唤醒
    struct disk devices[2];	 // 一个通道上连接两个硬盘，一主一从
+};
+
+struct dev_ideblk{
+	char *name;
+	struct partition_info *ideblk;
+	struct list_elem dev_list;
 };
 
 void intr_hd_handler(uint8_t irq_no);

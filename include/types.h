@@ -18,6 +18,6 @@ typedef unsigned int uint32_t;
 typedef unsigned long long int uint64_t;
 typedef char bool;
 typedef char* va_list;
-
+typedef unsigned int size_t;//机器位宽
 
 #endif 

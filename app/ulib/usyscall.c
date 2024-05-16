@@ -92,7 +92,7 @@ void clear(void) {
 }
 
 /* 获取当前工作目录 */
-char* getcwd(char* buf, uint32_t size) {
+char* getpwd(char* buf, uint32_t size) {
    return (char*)_syscall2(SYS_GETCWD, buf, size);
 }
 
@@ -180,4 +180,10 @@ int16_t wait(int32_t* status) {
 int32_t pipe(int32_t pipefd[2]) {
    return _syscall1(SYS_PIPE, pipefd);
 }
+
+/* 显示系统支持的命令 */
+void help(void) {
+   _syscall0(SYS_HELP);
+}
+
 #endif
