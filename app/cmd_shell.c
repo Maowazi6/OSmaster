@@ -4,6 +4,7 @@
 #include "stdio.h"
 #include "fs.h"
 #include "file.h"
+#include "vfs.h"
 #include "buildin_cmd.h"
 #include "cmd_shell.h"
 
